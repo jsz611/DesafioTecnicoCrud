@@ -4,24 +4,21 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head runat="server">
     <title>Desafio Bootcamp</title>
+    <link rel="stylesheet" type="text/css" href="styles.css" />
     <style type="text/css">
         .auto-style1 {
-            width: 100%;
+            text-align: center;
         }
-
-        .auto-style2 {
-            width: 581px;
+        .auto-style11 {
+            height: 146px;
         }
-
-        .auto-style3 {
-            width: 579px;
-        }
-
-        .auto-style4 {
-            width: 415px;
+        .auto-style12 {
+            text-align: center;
+            height: 146px;
         }
     </style>
 </head>
+
 <body>
     <form id="form1" runat="server">
         <div>
