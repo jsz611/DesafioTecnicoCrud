@@ -8,10 +8,9 @@ namespace DesafioTecnicoCrud
     {
         public static void RegisterRoutes(RouteCollection routes)
         {
-            routes.EnableFriendlyUrls(); // Ative o uso de FriendlyUrls
+            routes.EnableFriendlyUrls(); 
 
-            // Configurar a rota padrão para a página DesafioCrudInfo.aspx
-            routes.MapPageRoute("Default", "", "~/DesafioCrudInfo.aspx");
+            routes.MapPageRoute("Default", "DesafioCrudInfo/", "~/DesafioCrudInfo.aspx");
         }
     }
 }
