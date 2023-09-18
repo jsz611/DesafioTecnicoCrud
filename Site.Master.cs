@@ -11,7 +11,10 @@ namespace DesafioTecnicoCrud
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
+            if (!Request.Url.AbsolutePath.EndsWith("/DesafioCrudInfo.aspx", StringComparison.OrdinalIgnoreCase))
+            {
+                Response.Redirect("~/DesafioCrudInfo.aspx");
+            }
         }
     }
 }

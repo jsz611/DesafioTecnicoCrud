@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Web;
 using System.Web.Routing;
 using Microsoft.AspNet.FriendlyUrls;
 
@@ -8,9 +10,9 @@ namespace DesafioTecnicoCrud
     {
         public static void RegisterRoutes(RouteCollection routes)
         {
-            routes.EnableFriendlyUrls(); 
-
-            routes.MapPageRoute("Default", "DesafioCrudInfo/", "~/DesafioCrudInfo.aspx");
+            var settings = new FriendlyUrlSettings();
+            settings.AutoRedirectMode = RedirectMode.Permanent;
+            routes.EnableFriendlyUrls(settings);
         }
     }
 }
