@@ -24,10 +24,8 @@
 <body>
     <header>
         <h1>Desafio Técnico Bootcamp 4ª edição </h1>
-
     </header>
     <main>
-
         <form id="form1" runat="server">
             <div>
                 <table class="auto-style1">
@@ -40,7 +38,7 @@
                         <td rowspan="9">
                             <div class="auto-style3">
                                 <em>
-                                    <asp:GridView ID="dgViewProducts" runat="server" AutoGenerateColumns="False" OnSelectedIndexChanged="dgViewProducts_SelectedIndexChanged" DataKeyNames="ProductID" CssClass="auto-style8" EmptyDataText="Adicione um produto">
+                                    <asp:GridView ID="dgViewProducts" runat="server" AutoGenerateColumns="False" DataKeyNames="ProductID" CssClass="auto-style8" EmptyDataText="Adicione um produto" AutoPostBack="True" OnSelectedIndexChanged="dgViewProducts_SelectedIndexChanged">
                                         <Columns>
                                             <asp:CommandField ShowSelectButton="True" />
                                             <asp:BoundField DataField="ProductID" HeaderText="ProductID" InsertVisible="False" ReadOnly="True" SortExpression="ProductID" />
@@ -48,13 +46,15 @@
                                             <asp:BoundField DataField="Price" HeaderText="Price" SortExpression="Price" />
                                             <asp:BoundField DataField="DescriptionProduct" HeaderText="DescriptionProduct" SortExpression="DescriptionProduct" />
                                             <asp:BoundField DataField="Quantity" HeaderText="Quantity" SortExpression="Quantity" />
-                                            <asp:BoundField DataField="RegistrationDate" HeaderText="RegistrationDate" SortExpression="RegistrationDate" />
-                                            <asp:BoundField DataField="UpdateDate" HeaderText="UpdateDate" SortExpression="UpdateDate" />
+                                            <asp:BoundField DataField="RegistrationDate" HeaderText="Data de Criação" DataFormatString="{0:dd/MM/yyyy HH:mm:ss}" />
+
+                                            <asp:BoundField DataField="UpdateDate" HeaderText="Data de Atualização" DataFormatString="{0:dd/MM/yyyy HH:mm:ss}" />
+
                                         </Columns>
                                     </asp:GridView>
+
                                 </em>
                             </div>
-                            <asp:SqlDataSource ID="SqlDataSource2" runat="server" ConnectionString="<%$ ConnectionStrings:ConnectionString %>" SelectCommand="SELECT * FROM [Products]"></asp:SqlDataSource>
                         </td>
                     </tr>
                     <tr>
@@ -108,6 +108,7 @@
                                 <asp:Button ID="BtnAdd" runat="server" Text="Adicionar" CssClass="btn" OnClick="BtnAdd_Click" Width="91px" />
                                 <asp:Button ID="BtnUpdate" runat="server" Text="Atualizar" CssClass="btn" OnClick="BtnUpdate_Click" Width="90px" />
                                 <asp:Button ID="BtnDelete" runat="server" Text="Excluir" CssClass="btn btn-cancel" OnClick="BtnDelete_Click" Width="90px" />
+
                             </div>
                         </td>
                     </tr>

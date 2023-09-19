@@ -1,24 +1,24 @@
 ﻿using System;
-using System.Data;
-using System.Data.SqlClient;
+using System.Collections.Generic;
+using System.Linq;
 using System.Web.UI;
-using System.Configuration;
+using DesafioTecnicoCrud.Models;
 
 namespace DesafioTecnicoCrud
 {
     public partial class DesafioCrudInfo : System.Web.UI.Page
     {
-        private string cs = ConfigurationManager.ConnectionStrings["ConnectionString"].ConnectionString;
-        private SqlConnection con;
-        private SqlCommand cmd;
-        private SqlDataAdapter adapter;
-        private DataTable dt;
+        private List<Product> productList;
 
         protected void Page_Load(object sender, EventArgs e)
         {
-            con = new SqlConnection(cs);
-            cmd = new SqlCommand();
-            cmd.Connection = con;
+            productList = Session["ProductList"] as List<Product>;
+
+            if (productList == null)
+            {
+                productList = new List<Product>();
+                Session["ProductList"] = productList;
+            }
 
             if (!IsPostBack)
             {
@@ -28,70 +28,99 @@ namespace DesafioTecnicoCrud
 
         private void LoadGridViewData()
         {
-            dt = new DataTable();
-            adapter = new SqlDataAdapter("SELECT ProductID, NameItem, Price, DescriptionProduct, Quantity, RegistrationDate, UpdateDate FROM Products", con);
-            adapter.Fill(dt);
-
-            dgViewProducts.DataSource = dt;
+            dgViewProducts.DataSource = productList;
             dgViewProducts.DataBind();
         }
 
         protected void dgViewProducts_SelectedIndexChanged(object sender, EventArgs e)
         {
-            if (dgViewProducts.SelectedIndex >= 0)
+            int selectedProductID = Convert.ToInt32(dgViewProducts.DataKeys[dgViewProducts.SelectedIndex].Value);
+
+            Product selectedProduct = productList.FirstOrDefault(p => p.ProductID == selectedProductID);
+
+            if (selectedProduct != null)
             {
-                LblSID.Text = dgViewProducts.SelectedRow.Cells[1].Text;
-                TxtNameItem.Text = dgViewProducts.SelectedRow.Cells[2].Text;
-                TxtPrice.Text = dgViewProducts.SelectedRow.Cells[3].Text;
-                TxtDescriptionProduct.Text = dgViewProducts.SelectedRow.Cells[4].Text;
-                TxtQuantity.Text = dgViewProducts.SelectedRow.Cells[5].Text;
+                LblSID.Text = selectedProduct.ProductID.ToString();
+                TxtNameItem.Text = selectedProduct.NameItem;
+                TxtPrice.Text = selectedProduct.Price.ToString();
+                TxtDescriptionProduct.Text = selectedProduct.DescriptionProduct;
+                TxtQuantity.Text = selectedProduct.Quantity.ToString();
+
+                LblMessage.Text = "";
             }
         }
 
+
         protected void BtnAdd_Click(object sender, EventArgs e)
         {
-            if (!string.IsNullOrEmpty(TxtNameItem.Text) && !string.IsNullOrEmpty(TxtPrice.Text) && !string.IsNullOrEmpty(TxtDescriptionProduct.Text) && !string.IsNullOrEmpty(TxtQuantity.Text))
+            decimal priceValue;
+            int quantityValue;
+            if (string.IsNullOrWhiteSpace(TxtNameItem.Text) ||
+            string.IsNullOrWhiteSpace(TxtPrice.Text) ||
+            string.IsNullOrWhiteSpace(TxtDescriptionProduct.Text) ||
+            string.IsNullOrWhiteSpace(TxtQuantity.Text))
             {
-                decimal priceValue;
-                int quantityValue;
+                LblMessage.Text = "Preencha todos os campos antes de adicionar um produto.";
+                return; 
+            }
 
-                if (decimal.TryParse(TxtPrice.Text, out priceValue) && int.TryParse(TxtQuantity.Text, out quantityValue))
+
+            if (decimal.TryParse(TxtPrice.Text, out priceValue) && int.TryParse(TxtQuantity.Text, out quantityValue))
+            {
+                
+                if (IsProductAlreadyExists(TxtNameItem.Text))
                 {
-                    if (!IsProductAlreadyExists(TxtNameItem.Text))
-                    {
-                        using (SqlConnection con = new SqlConnection(cs))
-                        {
-                            con.Open();
-                            cmd = new SqlCommand("INSERT INTO Products (NameItem, Price, DescriptionProduct, Quantity, RegistrationDate) VALUES (@NameItem, @Price, @DescriptionProduct, @Quantity, @RegistrationDate)", con);
-                            cmd.Parameters.AddWithValue("@NameItem", TxtNameItem.Text);
-                            cmd.Parameters.AddWithValue("@Price", priceValue);
-                            cmd.Parameters.AddWithValue("@DescriptionProduct", TxtDescriptionProduct.Text);
-                            cmd.Parameters.AddWithValue("@Quantity", quantityValue);
-                            cmd.Parameters.AddWithValue("@RegistrationDate", DateTime.Now);
-                            cmd.ExecuteNonQuery();
-                            con.Close();
-                            LblMessage.Text = "Produto adicionado com sucesso!";
-
-                            ClearFields();
-
-                            LoadGridViewData();
-                        }
-                    }
-                    else
-                    {
-                        LblMessage.Text = "O produto já existe na tabela.";
-                    }
+                    LblMessage.Text = "Um produto com o mesmo nome já existe.";
                 }
                 else
                 {
-                    LblMessage.Text = "O preço e a quantidade devem ser valores numéricos.";
+                    
+                    Product newProduct = new Product
+                    {
+                        ProductID = GenerateUniqueProductID(),
+                        NameItem = TxtNameItem.Text,
+                        Price = priceValue,
+                        DescriptionProduct = TxtDescriptionProduct.Text,
+                        Quantity = quantityValue,
+                        RegistrationDate = DateTime.Now,
+                        UpdateDate = null 
+                    };
+
+                    
+                    productList.Add(newProduct);
+
+                    LblMessage.Text = "Produto adicionado com sucesso!";
+
+                    LoadGridViewData();
+
+                    
+                    ClearFields();
                 }
             }
             else
             {
-                LblMessage.Text = "Preencha todas as informações";
+                LblMessage.Text = "O preço e a quantidade devem ser valores numéricos.";
             }
         }
+
+        private bool IsProductAlreadyExists(string productName)
+        {
+            if (productName == null)
+            {
+                return false; 
+            }
+
+            foreach (var product in productList)
+            {
+                if (product.NameItem != null && product.NameItem.Equals(productName, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false; 
+        }
+
 
         protected void BtnUpdate_Click(object sender, EventArgs e)
         {
@@ -102,53 +131,38 @@ namespace DesafioTecnicoCrud
 
                 if (decimal.TryParse(TxtPrice.Text, out priceValue) && int.TryParse(TxtQuantity.Text, out quantityValue))
                 {
-                    using (SqlConnection con = new SqlConnection(cs))
-                    {
-                        con.Open();
-                        cmd = new SqlCommand("SELECT COUNT(*) FROM Products WHERE NameItem = @NameItem AND ProductID <> @ProductID", con);
-                        cmd.Parameters.AddWithValue("@NameItem", TxtNameItem.Text);
-                        cmd.Parameters.AddWithValue("@ProductID", LblSID.Text);
-                        int count = (int)cmd.ExecuteScalar();
+                    int productIDToUpdate = int.Parse(LblSID.Text);
 
-                        if (count > 0)
+                    Product productToUpdate = productList.FirstOrDefault(p => p.ProductID == productIDToUpdate);
+
+                    if (productToUpdate != null)
+                    {
+                        
+                        if (productToUpdate.NameItem != TxtNameItem.Text || productToUpdate.Price != priceValue ||
+                            productToUpdate.DescriptionProduct != TxtDescriptionProduct.Text ||
+                            productToUpdate.Quantity != quantityValue)
                         {
-                            LblMessage.Text = "O novo valor já existe.";
+                           
+                            productToUpdate.NameItem = TxtNameItem.Text;
+                            productToUpdate.Price = priceValue;
+                            productToUpdate.DescriptionProduct = TxtDescriptionProduct.Text;
+                            productToUpdate.Quantity = quantityValue;
+                            productToUpdate.UpdateDate = DateTime.Now;
+
+                            
+                            LblMessage.Text = "Produto atualizado com sucesso!";
+
+                      
+                            LoadGridViewData();
                         }
                         else
                         {
-                            cmd = new SqlCommand("SELECT * FROM Products WHERE ProductID = @ProductID AND (NameItem <> @NameItem OR Price <> @Price OR DescriptionProduct <> @DescriptionProduct OR Quantity <> @Quantity)", con);
-                            cmd.Parameters.AddWithValue("@NameItem", TxtNameItem.Text);
-                            cmd.Parameters.AddWithValue("@Price", priceValue);
-                            cmd.Parameters.AddWithValue("@DescriptionProduct", TxtDescriptionProduct.Text);
-                            cmd.Parameters.AddWithValue("@Quantity", quantityValue);
-                            cmd.Parameters.AddWithValue("@ProductID", LblSID.Text);
-
-                            using (SqlDataReader reader = cmd.ExecuteReader())
-                            {
-                                if (reader.Read())
-                                {
-                                    reader.Close();
-                                    cmd = new SqlCommand("UPDATE Products SET NameItem = @NameItem, Price = @Price, DescriptionProduct = @DescriptionProduct, Quantity = @Quantity, UpdateDate = @UpdateDate WHERE ProductID = @ProductID", con);
-                                    cmd.Parameters.AddWithValue("@NameItem", TxtNameItem.Text);
-                                    cmd.Parameters.AddWithValue("@Price", priceValue);
-                                    cmd.Parameters.AddWithValue("@DescriptionProduct", TxtDescriptionProduct.Text);
-                                    cmd.Parameters.AddWithValue("@Quantity", quantityValue);
-                                    cmd.Parameters.AddWithValue("@ProductID", LblSID.Text);
-                                    cmd.Parameters.AddWithValue("@UpdateDate", DateTime.Now);
-                                    cmd.ExecuteNonQuery();
-                                    con.Close();
-                                    LblMessage.Text = "Produto atualizado com sucesso!";
-
-                                    ClearFields();
-
-                                    LoadGridViewData();
-                                }
-                                else
-                                {
-                                    LblMessage.Text = "Nenhum valor foi alterado.";
-                                }
-                            }
+                            LblMessage.Text = "Nenhum valor foi alterado.";
                         }
+                    }
+                    else
+                    {
+                        LblMessage.Text = "Produto não encontrado na lista.";
                     }
                 }
                 else
@@ -158,39 +172,25 @@ namespace DesafioTecnicoCrud
             }
         }
 
-        private bool IsProductAlreadyExists(string productName)
-        {
-            using (SqlConnection con = new SqlConnection(cs))
-            {
-                con.Open();
-                cmd = new SqlCommand("SELECT COUNT(*) FROM Products WHERE NameItem = @NameItem", con);
-                cmd.Parameters.AddWithValue("@NameItem", productName);
-                int count = (int)cmd.ExecuteScalar();
-                con.Close();
-                return count > 0;
-            }
-        }
-
         protected void BtnDelete_Click(object sender, EventArgs e)
         {
             if (!string.IsNullOrEmpty(LblSID.Text))
             {
-                using (SqlConnection con = new SqlConnection(cs))
+                Product productToDelete = productList.FirstOrDefault(p => p.ProductID == int.Parse(LblSID.Text));
+
+                if (productToDelete != null)
                 {
-                    con.Open();
-                    cmd = new SqlCommand("DELETE FROM Products WHERE ProductID = @ProductID", con);
-                    cmd.Parameters.AddWithValue("@ProductID", LblSID.Text);
-                    cmd.ExecuteNonQuery();
-                    con.Close();
+                    productList.Remove(productToDelete);
 
-                    TxtNameItem.Text = string.Empty;
-                    TxtPrice.Text = string.Empty;
-                    TxtDescriptionProduct.Text = string.Empty;
-                    TxtQuantity.Text = string.Empty;
-
-                    LblMessage.Text = "Produto excluído com sucesso!";
+                    ClearFields();
 
                     LoadGridViewData();
+
+                    LblMessage.Text = "Produto excluído com sucesso!";
+                }
+                else
+                {
+                    LblMessage.Text = "Produto não encontrado na lista.";
                 }
             }
             else
@@ -213,5 +213,25 @@ namespace DesafioTecnicoCrud
             TxtQuantity.Text = "";
             LblMessage.Text = "";
         }
+
+        private int GenerateUniqueProductID()
+        {
+            return productList.Count > 0 ? productList.Max(p => p.ProductID) + 1 : 1;
+        }
+    }
+}
+
+
+namespace DesafioTecnicoCrud.Models
+{
+    public class Product
+    {
+        public int ProductID { get; set; }
+        public string NameItem { get; set; }
+        public decimal Price { get; set; }
+        public string DescriptionProduct { get; set; }
+        public int Quantity { get; set; }
+        public DateTime RegistrationDate { get; set; }
+        public DateTime? UpdateDate { get; set; } 
     }
 }
