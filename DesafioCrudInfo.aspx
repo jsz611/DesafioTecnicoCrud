@@ -41,11 +41,11 @@
                                     <asp:GridView ID="dgViewProducts" runat="server" AutoGenerateColumns="False" DataKeyNames="ProductID" CssClass="auto-style8" EmptyDataText="Adicione um produto" AutoPostBack="True" OnSelectedIndexChanged="dgViewProducts_SelectedIndexChanged">
                                         <Columns>
                                             <asp:CommandField ShowSelectButton="True" />
-                                            <asp:BoundField DataField="ProductID" HeaderText="ProductID" InsertVisible="False" ReadOnly="True" SortExpression="ProductID" />
-                                            <asp:BoundField DataField="NameItem" HeaderText="NameItem" SortExpression="NameItem" />
-                                            <asp:BoundField DataField="Price" HeaderText="Price" SortExpression="Price" />
-                                            <asp:BoundField DataField="DescriptionProduct" HeaderText="DescriptionProduct" SortExpression="DescriptionProduct" />
-                                            <asp:BoundField DataField="Quantity" HeaderText="Quantity" SortExpression="Quantity" />
+                                            <asp:BoundField DataField="ProductID" HeaderText="ID" InsertVisible="False" ReadOnly="True" SortExpression="ProductID" />
+                                            <asp:BoundField DataField="NameItem" HeaderText="Nome do Produto" SortExpression="NameItem" />
+                                            <asp:BoundField DataField="Price" HeaderText="Preço" SortExpression="Price" />
+                                            <asp:BoundField DataField="DescriptionProduct" HeaderText="Descrição do Produto" SortExpression="DescriptionProduct" />
+                                            <asp:BoundField DataField="Quantity" HeaderText="Quantidade" SortExpression="Quantity" />
                                             <asp:BoundField DataField="RegistrationDate" HeaderText="Data de Criação" DataFormatString="{0:dd/MM/yyyy HH:mm:ss}" />
 
                                             <asp:BoundField DataField="UpdateDate" HeaderText="Data de Atualização" DataFormatString="{0:dd/MM/yyyy HH:mm:ss}" />
